@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1010" viewBox="0 0 1400 1010" role="img" aria-labelledby="title desc">
+<title id="title">Fed MOPSD：公开问题、client 私有特权信息、server Student 训练</title>
+<desc id="desc">训练开始前，server 只下发一次初始模型权重；client 将其冻结为整个训练期间固定的 Teacher。server Student 持续生成轨迹并更新，但不再向 client 同步新权重。client 结合私有特权信息，在轨迹上计算 Teacher 分布并返回。若问题也需要保密，则由 client 完成 rollout。</desc>
+<defs><marker id="b" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#2563eb"/></marker><marker id="g" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#0f766e"/></marker></defs>
+<style>text{font-family:'Microsoft YaHei','Noto Sans CJK SC',sans-serif;fill:#18324d;font-size:21px}.title{font-size:30px;font-weight:700}.head{font-size:24px;font-weight:700}.small{font-size:19px}.blue{fill:#2563eb}.green{fill:#0f766e}.orange{fill:#ad5410}.muted{fill:#52677d}</style>
+<rect width="1400" height="1010" fill="#f7f9fc"/><text x="40" y="52" class="title">Fed MOPSD：私有特权信息形成 Teacher，统一 Student 在 server 学习</text>
+<rect x="40" y="85" width="1320" height="55" rx="10" fill="#fff4e7" stroke="#e6a66b"/><text x="60" y="121" class="orange">本图前提：prompt Q 允许共享；私有信息 A 不直接出 client。返回分布仍需单独分析泄露风险。</text>
+<rect x="40" y="175" width="430" height="610" rx="18" fill="#eaf2ff" stroke="#93b4e9" stroke-width="2"/>
+<text x="65" y="218" class="head">server / 唯一可训练 Student</text><text x="65" y="263">① 训练开始前：只下发一次初始权重 M₀</text><text x="65" y="308">② 获取公开 / 获授权的问题 Qᵢ</text><text x="65" y="353">③ 仅用 Qᵢ 生成 Student 轨迹 Tᵢ</text>
+<rect x="65" y="400" width="380" height="155" rx="12" fill="white" stroke="#93b4e9"/><text x="85" y="440">⑥ 汇集不同领域的 Teacher 监督</text><text x="85" y="480">按样本及回答长度归一化</text><text x="85" y="520">联合损失 Σᵢ αᵢ Lᵢ，更新 θ</text>
+<text x="65" y="610">⑦ 持续更新 server Student Mθ</text><text x="65" y="655">继续训练：生成新轨迹，不再下发权重</text><text x="65" y="712" class="small muted">不同问题上的分布不直接平均</text><text x="65" y="747" class="small muted">server Student 不直接读取 Aᵢ 原文</text>
+<g fill="#edf8f4" stroke="#80b5a5" stroke-width="2"><rect x="920" y="175" width="440" height="180" rx="16"/><rect x="920" y="390" width="440" height="180" rx="16"/><rect x="920" y="605" width="440" height="180" rx="16"/></g>
+<text x="945" y="213" class="head">client Math</text><text x="945" y="251">本地私有 A：参考答案 / 解题过程</text><text x="945" y="289">⑤ 固定 Teacher Mᵀ = M₀，输入 (Q, A, T 前缀)</text><text x="945" y="326" class="small">权重始终不变；A 不直接上传</text>
+<text x="945" y="428" class="head">client IF</text><text x="945" y="466">本地私有 A：参考回复 / 评分反馈</text><text x="945" y="504">⑤ 固定 Teacher Mᵀ = M₀，输入 (Q, A, T 前缀)</text><text x="945" y="541" class="small">权重始终不变；A 不直接上传</text>
+<text x="945" y="643" class="head">client Code</text><text x="945" y="681">本地私有 A：参考实现 / 测试反馈</text><text x="945" y="719">⑤ 固定 Teacher Mᵀ = M₀，输入 (Q, A, T 前缀)</text><text x="945" y="756" class="small">权重始终不变；A 不直接上传</text>
+<g fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#b)"><path d="M470 230H910"/><path d="M470 445H910"/><path d="M470 660H910"/></g>
+<g fill="none" stroke="#0f766e" stroke-width="2.5" marker-end="url(#g)"><path d="M920 320H480"/><path d="M920 535H480"/><path d="M920 750H480"/></g>
+<g text-anchor="middle"><text x="695" y="208" class="small blue">① M₀（仅训练开始前）　④ (Qᵢ, Tᵢ)</text><text x="695" y="299" class="small green">Teacher 分布 / token IDs + 概率</text><text x="695" y="423" class="small blue">① M₀（仅训练开始前）　④ (Qᵢ, Tᵢ)</text><text x="695" y="514" class="small green">Teacher 分布 / token IDs + 概率</text><text x="695" y="638" class="small blue">① M₀（仅训练开始前）　④ (Qᵢ, Tᵢ)</text><text x="695" y="729" class="small green">Teacher 分布 / token IDs + 概率</text></g>
+<rect x="40" y="825" width="1320" height="140" rx="14" fill="#fff4e7" stroke="#e6a66b" stroke-width="2"/>
+<text x="60" y="861" class="head orange">若 prompt Q 也私有：执行位置必须改变</text>
+<text x="60" y="902">下发模型 → client 本地 Student rollout → 本地特权 Teacher → 本地 OPSD → 上传受保护更新 → server 聚合</text>
+<text x="60" y="940" class="small muted">该分支增加 client 反向训练负担；若坚持 server 训练且 server 不可见 Q，需要另行设计保密执行协议。</text>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+<title id="title">FedAvg：本地训练与参数加权平均</title>
+<desc id="desc">server 向参与 client 下发全局权重，client 使用各自数据训练并上传模型参数，server 按样本量加权平均。该轮通信在聚合后结束；只有继续训练时，新的全局模型才用于下一轮。</desc>
+<defs><marker id="b" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#2563eb"/></marker><marker id="g" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#0f766e"/></marker></defs>
+<style>text{font-family:'Microsoft YaHei','Noto Sans CJK SC',sans-serif;fill:#18324d;font-size:21px}.title{font-size:30px;font-weight:700}.head{font-size:25px;font-weight:700}.small{font-size:19px}.blue{fill:#2563eb}.green{fill:#0f766e}.muted{fill:#52677d}</style>
+<rect width="1280" height="760" fill="#f7f9fc"/>
+<text x="40" y="52" class="title">FedAvg：数据留在 client，模型参数参与聚合</text>
+<rect x="40" y="145" width="390" height="475" rx="18" fill="#eaf2ff" stroke="#93b4e9" stroke-width="2"/>
+<text x="70" y="190" class="head">server / 全局模型</text>
+<text x="70" y="240">① 保存本轮全局权重 θₜ</text>
+<text x="70" y="290">② 下发同一权重到参与 client</text>
+<rect x="65" y="330" width="340" height="155" rx="12" fill="white" stroke="#93b4e9"/>
+<text x="85" y="365" class="head">⑤ 加权聚合</text>
+<text x="85" y="410">θₜ₊₁ = Σᵢ wᵢ θ⁺ₜ,ᵢ</text>
+<text x="85" y="450" class="small">wᵢ 通常按参与 client 样本数确定</text>
+<text x="70" y="540">⑥ 若继续训练：用 θₜ₊₁ 开始下一轮</text>
+<text x="70" y="580" class="small muted">若停止训练：θₜ₊₁ 即最终全局模型</text>
+<g fill="#edf8f4" stroke="#80b5a5" stroke-width="2">
+<rect x="850" y="135" width="390" height="150" rx="16"/>
+<rect x="850" y="330" width="390" height="150" rx="16"/>
+<rect x="850" y="525" width="390" height="150" rx="16"/>
+</g>
+<text x="875" y="172" class="head">client 1</text><text x="875" y="216">数据集 D₁ 保留在 client</text><text x="875" y="254" class="small">③ 从 θₜ 开始训练 → client 权重 θ⁺ₜ,₁</text>
+<text x="875" y="367" class="head">client 2</text><text x="875" y="411">数据集 D₂ 保留在 client</text><text x="875" y="449" class="small">③ 从 θₜ 开始训练 → client 权重 θ⁺ₜ,₂</text>
+<text x="875" y="562" class="head">client 3</text><text x="875" y="606">数据集 D₃ 保留在 client</text><text x="875" y="644" class="small">③ 从 θₜ 开始训练 → client 权重 θ⁺ₜ,₃</text>
+<g fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#b)"><path d="M430 181H840"/><path d="M430 376H840"/><path d="M430 571H840"/></g>
+<g fill="none" stroke="#0f766e" stroke-width="2.5" marker-end="url(#g)"><path d="M850 254H440"/><path d="M850 449H440"/><path d="M850 644H440"/></g>
+<g text-anchor="middle"><text x="640" y="168" class="blue small">② 下发全局权重 θₜ</text><text x="640" y="240" class="green small">④ 上传本地权重 θ⁺ₜ,₁</text><text x="640" y="363" class="blue small">② 下发全局权重 θₜ</text><text x="640" y="435" class="green small">④ 上传本地权重 θ⁺ₜ,₂</text><text x="640" y="558" class="blue small">② 下发全局权重 θₜ</text><text x="640" y="630" class="green small">④ 上传本地权重 θ⁺ₜ,₃</text></g>
+<text x="40" y="723" class="small muted">D₁、D₂、D₃ 表示抽象 client 数据集；原论文 Algorithm 1 返回训练后的模型参数，图中未展示 client 随机抽样。</text>
+</svg>

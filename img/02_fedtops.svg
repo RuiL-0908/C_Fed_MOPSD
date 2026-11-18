@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">FedAvg 与 FedTOPS 聚合流程对比</title>
+  <desc id="desc">上半部分展示 FedAvg 加权平均后直接输出；下半部分展示 FedTOPS 在同一聚合方向上引入可控倍率 a，评估候选后决定最终更新步幅。</desc>
+  <defs>
+    <marker id="blueArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+    <marker id="orangeArrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#c96612"/>
+    </marker>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#17324d" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+  <style>
+    text { font-family: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; fill: #17324d; }
+    .title { font-size: 32px; font-weight: 700; }
+    .section { font-size: 27px; font-weight: 700; }
+    .head { font-size: 21px; font-weight: 700; }
+    .body { font-size: 18px; }
+    .small { font-size: 16px; }
+    .formula { font-family: "Cambria Math", "Times New Roman", serif; font-size: 23px; font-style: italic; }
+    .blue { fill: #1d4ed8; }
+    .orange { fill: #ab510a; }
+    .muted { fill: #586e83; }
+    .white { fill: #ffffff; }
+  </style>
+
+  <rect width="1400" height="900" fill="#f7f9fc"/>
+  <text x="700" y="50" text-anchor="middle" class="title">FedAvg 与 FedTOPS：server 聚合流程对比</text>
+
+  <!-- Upper half: FedAvg -->
+  <rect x="45" y="78" width="1310" height="330" rx="20" fill="#edf4ff" stroke="#6b98df" stroke-width="2"/>
+  <rect x="45" y="78" width="230" height="54" rx="20" fill="#2563eb"/>
+  <rect x="45" y="110" width="230" height="22" fill="#2563eb"/>
+  <text x="160" y="115" text-anchor="middle" class="section white">上：FedAvg</text>
+  <text x="305" y="113" class="head blue">加权平均后直接结束本轮聚合</text>
+
+  <rect x="75" y="164" width="265" height="150" rx="14" fill="#ffffff" stroke="#8fb2e8" filter="url(#shadow)"/>
+  <circle cx="105" cy="193" r="18" fill="#2563eb"/>
+  <text x="105" y="200" text-anchor="middle" class="head white">1</text>
+  <text x="137" y="200" class="head">server 下发模型</text>
+  <text x="207" y="246" text-anchor="middle" class="formula">θ<tspan baseline-shift="sub" font-size="16">t</tspan></text>
+  <text x="207" y="280" text-anchor="middle" class="small muted">当前全局 Student 参数</text>
+
+  <path d="M352,239 H397" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#blueArrow)"/>
+
+  <rect x="410" y="164" width="265" height="150" rx="14" fill="#ffffff" stroke="#8fb2e8" filter="url(#shadow)"/>
+  <circle cx="440" cy="193" r="18" fill="#2563eb"/>
+  <text x="440" y="200" text-anchor="middle" class="head white">2</text>
+  <text x="472" y="200" class="head">client 本地训练</text>
+  <text x="542" y="241" text-anchor="middle" class="body">在私有数据上完成 OPD</text>
+  <text x="542" y="275" text-anchor="middle" class="formula">θ⁺<tspan baseline-shift="sub" font-size="16">t,i</tspan></text>
+  <text x="542" y="300" text-anchor="middle" class="small muted">上传本地更新参数</text>
+
+  <path d="M687,239 H732" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#blueArrow)"/>
+
+  <rect x="745" y="164" width="300" height="150" rx="14" fill="#ffffff" stroke="#8fb2e8" filter="url(#shadow)"/>
+  <circle cx="775" cy="193" r="18" fill="#2563eb"/>
+  <text x="775" y="200" text-anchor="middle" class="head white">3</text>
+  <text x="807" y="200" class="head">server 加权平均</text>
+  <text x="895" y="252" text-anchor="middle" class="formula">θ̄<tspan baseline-shift="sub" font-size="16">t</tspan> = ∑<tspan baseline-shift="sub" font-size="16">i</tspan> w<tspan baseline-shift="sub" font-size="16">i</tspan>θ⁺<tspan baseline-shift="sub" font-size="16">t,i</tspan></text>
+  <text x="895" y="290" text-anchor="middle" class="small muted">得到唯一的聚合结果</text>
+
+  <path d="M1057,239 H1102" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#blueArrow)"/>
+
+  <rect x="1115" y="164" width="210" height="150" rx="14" fill="#dceaff" stroke="#5d8ed8" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="1145" cy="193" r="18" fill="#2563eb"/>
+  <text x="1145" y="200" text-anchor="middle" class="head white">4</text>
+  <text x="1177" y="200" class="head">直接输出</text>
+  <text x="1220" y="252" text-anchor="middle" class="formula">θ<tspan baseline-shift="sub" font-size="16">t+1</tspan> = θ̄<tspan baseline-shift="sub" font-size="16">t</tspan></text>
+  <text x="1220" y="290" text-anchor="middle" class="small blue">本轮聚合结束</text>
+
+  <rect x="463" y="340" width="474" height="40" rx="20" fill="#dceaff"/>
+  <text x="700" y="366" text-anchor="middle" class="body blue">FedAvg 只进行参数加权平均，不包含倍率 a</text>
+
+  <!-- Lower half: FedTOPS -->
+  <rect x="45" y="442" width="1310" height="405" rx="20" fill="#fff7ed" stroke="#dc8434" stroke-width="2"/>
+  <rect x="45" y="442" width="250" height="54" rx="20" fill="#c96612"/>
+  <rect x="45" y="474" width="250" height="22" fill="#c96612"/>
+  <text x="170" y="479" text-anchor="middle" class="section white">下：FedTOPS</text>
+  <text x="325" y="477" class="head orange">在相同聚合方向上，用可控倍率 a 选择最终更新步幅</text>
+
+  <rect x="75" y="530" width="260" height="205" rx="14" fill="#ffffff" stroke="#e3a066" filter="url(#shadow)"/>
+  <circle cx="105" cy="559" r="18" fill="#c96612"/>
+  <text x="105" y="566" text-anchor="middle" class="head white">1</text>
+  <text x="137" y="566" class="head">client 训练并上传</text>
+  <text x="205" y="615" text-anchor="middle" class="body">与 FedAvg 完全相同</text>
+  <text x="205" y="654" text-anchor="middle" class="formula">θ⁺<tspan baseline-shift="sub" font-size="16">t,i</tspan></text>
+  <text x="205" y="699" text-anchor="middle" class="small muted">不改变本地 OPD 和学习率</text>
+
+  <path d="M347,632 H392" fill="none" stroke="#c96612" stroke-width="2.5" marker-end="url(#orangeArrow)"/>
+
+  <rect x="405" y="530" width="285" height="205" rx="14" fill="#ffffff" stroke="#e3a066" filter="url(#shadow)"/>
+  <circle cx="435" cy="559" r="18" fill="#c96612"/>
+  <text x="435" y="566" text-anchor="middle" class="head white">2</text>
+  <text x="467" y="566" class="head">先做 FedAvg 聚合</text>
+  <text x="547" y="615" text-anchor="middle" class="formula">θ̄<tspan baseline-shift="sub" font-size="16">t</tspan> = ∑<tspan baseline-shift="sub" font-size="16">i</tspan> w<tspan baseline-shift="sub" font-size="16">i</tspan>θ⁺<tspan baseline-shift="sub" font-size="16">t,i</tspan></text>
+  <text x="547" y="665" text-anchor="middle" class="formula">Δ<tspan baseline-shift="sub" font-size="16">t</tspan> = θ̄<tspan baseline-shift="sub" font-size="16">t</tspan> − θ<tspan baseline-shift="sub" font-size="16">t</tspan></text>
+  <text x="547" y="705" text-anchor="middle" class="small muted">确定本轮聚合方向</text>
+
+  <path d="M702,632 H747" fill="none" stroke="#c96612" stroke-width="2.5" marker-end="url(#orangeArrow)"/>
+
+  <rect x="760" y="530" width="285" height="205" rx="14" fill="#ffffff" stroke="#e3a066" filter="url(#shadow)"/>
+  <circle cx="790" cy="559" r="18" fill="#c96612"/>
+  <text x="790" y="566" text-anchor="middle" class="head white">3</text>
+  <text x="822" y="566" class="head">引入可控倍率 a</text>
+  <circle cx="902" cy="628" r="45" fill="#fff0dc" stroke="#c96612" stroke-width="2"/>
+  <text x="902" y="639" text-anchor="middle" class="formula orange">a</text>
+  <text x="902" y="692" text-anchor="middle" class="formula">θ<tspan baseline-shift="sub" font-size="16">t</tspan>(a)=θ<tspan baseline-shift="sub" font-size="16">t</tspan>+aΔ<tspan baseline-shift="sub" font-size="16">t</tspan></text>
+  <text x="902" y="720" text-anchor="middle" class="small muted">a 控制更新幅度，方向不变</text>
+
+  <path d="M1057,632 H1102" fill="none" stroke="#c96612" stroke-width="2.5" marker-end="url(#orangeArrow)"/>
+
+  <rect x="1115" y="530" width="210" height="205" rx="14" fill="#ffead1" stroke="#c96612" stroke-width="2" filter="url(#shadow)"/>
+  <circle cx="1145" cy="559" r="18" fill="#c96612"/>
+  <text x="1145" y="566" text-anchor="middle" class="head white">4</text>
+  <text x="1177" y="566" class="head">评估并输出</text>
+  <text x="1220" y="610" text-anchor="middle" class="small">复用本轮缓存</text>
+  <text x="1220" y="638" text-anchor="middle" class="small">选择合适的 a<tspan baseline-shift="sub" font-size="12">t</tspan></text>
+  <text x="1220" y="686" text-anchor="middle" class="formula">θ<tspan baseline-shift="sub" font-size="16">t+1</tspan></text>
+  <text x="1220" y="716" text-anchor="middle" class="formula">= θ<tspan baseline-shift="sub" font-size="16">t</tspan> + a<tspan baseline-shift="sub" font-size="16">t</tspan>Δ<tspan baseline-shift="sub" font-size="16">t</tspan></text>
+
+  <rect x="200" y="768" width="1000" height="49" rx="12" fill="#fff0dc" stroke="#e1aa72"/>
+  <text x="700" y="790" text-anchor="middle" class="body orange">a = 1：等于 FedAvg　　a &gt; 1：放大更新　　a &lt; 1：缩小更新</text>
+  <text x="700" y="811" text-anchor="middle" class="small muted">无可行候选时取 a<tspan baseline-shift="sub" font-size="12">t</tspan> = 0，保留本轮起始模型 θ<tspan baseline-shift="sub" font-size="12">t</tspan></text>
+
+  <text x="700" y="880" text-anchor="middle" class="small muted">核心区别：FedAvg 直接采用加权平均结果；FedTOPS 用倍率 a 控制 server 最终采用的聚合步幅。</text>
+</svg>
