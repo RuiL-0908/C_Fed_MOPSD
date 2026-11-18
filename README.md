@@ -7,16 +7,16 @@
 
 传统联邦学习的基本出发点是：训练数据分散在不同 client 上，client 不能把原始数据直接交给 server，但多个 client 仍希望共同训练出一个全局模型。
 
-设 server 在第 $t$ 轮维护全局模型权重 $M_t$，client $i$ 持有数据集 $\mathcal D_i$。根据 FedAvg 原论文的 Algorithm 1，一轮通信包含以下过程：
+设 server 在第 $t$ 轮维护全局模型权重 $M_t$ ，client $i$ 持有数据集 $\mathcal D_i$ 。根据 FedAvg 原论文的 Algorithm 1，一轮通信包含以下过程：
 
 1. server 把同一份模型权重 $M_t$ 发给本轮参与训练的 client。
 2. 每个 client 以 $M_t$ 为起点，在自己的数据 $\mathcal D_i$ 上训练，得到更新后的模型 $M_{t,i}$。
 3. client 把训练后的模型参数传回 server，原始训练数据不参与该次通信。
-4. server 按 client 样本量进行加权平均，得到新的全局模型 $M_{t+1}$。至此，第 $t$ 轮通信结束。
+4. server 按 client 样本量进行加权平均，得到新的全局模型 $M_{t+1}$ 。至此，第 $t$ 轮通信结束。
 
 FedAvg 原文描述的是多轮训练算法，而不是只聚合一次的 one-shot 方法。只有在尚未达到停止条件时，server 才会在下一轮把 $M_{t+1}$ 发给新一轮选中的 client；如果训练在本轮结束，则 $M_{t+1}$ 就是最终全局模型。因此，“再次下发”属于下一轮训练，不是本轮加权平均之后必然执行的额外步骤。
 
-若 client $i$ 的样本量为 $n_i$，本轮参与 client 集合为 $\mathcal S_t$，则聚合过程可以写为：
+若 client $i$ 的样本量为 $n_i$ ，本轮参与 client 集合为 $\mathcal S_t$ ，则聚合过程可以写为：
 
 $$
 w_i=\frac{n_i}{\sum_{r\in\mathcal S_t}n_r},
@@ -75,18 +75,15 @@ $$
 2. server 先得到 FedAvg 聚合结果 $\bar\theta_t$ 和聚合增量 $\Delta_t$；
 3. server 用多个 $a$ 构造候选模型，并复用本轮缓存进行评估；
 4. 在各 client 预测变化满足约束的候选中，选择与 Teacher 分布最接近的倍率 $a_t$；
-5. server 输出
-   $$
-   \theta_{t+1}=\theta_t+a_t\Delta_t.
-   $$
+5. server 输出 $$\theta_{t+1}=\theta_t+a_t\Delta_t.$$
 
-其中，$a=1$ 的候选等于普通 FedAvg 结果，$a>1$ 放大本轮聚合更新，$a<1$ 缩小本轮聚合更新；若没有候选满足约束，则取 $a_t=0$，保留本轮起始模型。FedTOPS 不改变 client 的 OPD 训练方式和学习率，只在 server 端控制最终采用多大的聚合步幅。
+其中， $a=1$ 的候选等于普通 FedAvg 结果， $a>1$ 放大本轮聚合更新， $a<1$ 缩小本轮聚合更新；若没有候选满足约束，则取 $a_t=0$ ，保留本轮起始模型。FedTOPS 不改变 client 的 OPD 训练方式和学习率，只在 server 端控制最终采用多大的聚合步幅。
 
 ![FedAvg 与 FedTOPS 的聚合流程对比](img/02_fedtops.png)
 
 *图 2：上半部分为 FedAvg，server 加权平均后直接结束本轮聚合；下半部分为 FedTOPS，server 在相同聚合方向上用倍率 $a$ 构造候选，并选择最终更新步幅。*
 
-FedTOPS 对 $a$ 的选择分为两步。这里用 $p_\theta$ 表示参数为 $\theta$ 的同一个 Student 所产生的输出分布，用 $q$ 表示固定 Teacher 在相同缓存 prefix 上给出的输出分布；$\widetilde p_\theta$ 和 $\widetilde q$ 中的波浪号表示相应分布经过相同的词表压缩。首先，对每个候选模型 $\theta_t(a)=\theta_t+a\Delta_t$，分别检查它在各 client 上相对于本轮起始 Student 的预测变化：
+FedTOPS 对 $a$ 的选择分为两步。这里用 $p_\theta$ 表示参数为 $\theta$ 的同一个 Student 所产生的输出分布，用 $q$ 表示固定 Teacher 在相同缓存 prefix 上给出的输出分布；$\widetilde p_\theta$ 和 $\widetilde q$ 中的波浪号表示相应分布经过相同的词表压缩。首先，对每个候选模型 $\theta_t(a)=\theta_t+a\Delta_t$ ，分别检查它在各 client 上相对于本轮起始 Student 的预测变化：
 
 $$
 \widehat K_{i,t}(a)
@@ -102,7 +99,7 @@ $$
 \widehat K_{i,t}(a)\leq\delta
 $$
 
-的候选才是可行候选。论文实验统一取 $\delta=0.05$，该约束用于防止放大聚合增量后模型预测变化过大。
+的候选才是可行候选。论文实验统一取 $\delta=0.05$ ，该约束用于防止放大聚合增量后模型预测变化过大。
 
 然后，server 在可行候选中计算候选 Student 与 Teacher 分布之间的加权差异：
 
@@ -148,32 +145,32 @@ OPSD[7] 的思想是：Teacher 和 Student 是同一个参数化模型 $p_\theta
 client $i$ 持有 $N_i$ 条私有训练样本，每条样本由 prompt $Q$ 和特权信息 $A$ 组成：
 
 $$
-\mathcal D_i=\{(Q_{i,j},A_{i,j})\}_{j=1}^{N_i}.
+\mathcal{D}_i=\lbrace(Q_{i,j},A_{i,j})\rbrace_{j=1}^{N_i}
 $$
 
-训练开始前，server 只向各 client 下发一次初始模型 $M_0$。每个 client 将收到的副本永久冻结，记为 $M^{\mathrm T}=M_0$；server 则保留一个从 $M_0$ 初始化、可以持续更新的 Student $M_\theta$。对于第 $j$ 条样本以及 Student 轨迹 $T_{i,j}$ 的第 $k$ 个 token 位置，Teacher 分布为：
+训练开始前，server 只向各 client 下发一次初始模型 $M_0$。每个 client 将收到的副本永久冻结，记为 $M^{\mathrm T}=M_0$ ；server 则保留一个从 $M_0$ 初始化、可以持续更新的 Student $M_\theta$ 。对于第 $j$ 条样本以及 Student 轨迹 $T_{i,j}$ 的第 $k$ 个 token 位置，Teacher 分布为：
 
 $$
 q_{i,j,k}
-=M^{\mathrm T}\!\left(\cdot\mid Q_{i,j},A_{i,j},T_{i,j,<k}\right).
+=M^{\mathrm{T}}\left(\cdot\mid Q_{i,j},A_{i,j},T_{i,j,\lt k}\right)
 $$
 
 server 上可训练 Student 的分布为：
 
 $$
 p_{\theta,i,j,k}
-=M_\theta\!\left(\cdot\mid Q_{i,j},T_{i,j,<k}\right).
+=M_\theta\left(\cdot\mid Q_{i,j},T_{i,j,\lt k}\right)
 $$
 
-这里的“$\cdot$”表示完整的下一 token 概率分布。两者处理同一个轨迹前缀 $T_{i,j,<k}$，区别是 Teacher 能看到 $Q_{i,j}+A_{i,j}$，Student 只能看到 $Q_{i,j}$。Teacher 使用固定的 $M^{\mathrm T}$，不参与反向传播；梯度只更新 server 上的 $M_\theta$。随着 Student 更新，轨迹前缀可能变化，因此 Teacher 的输出分布也可能随输入轨迹变化，但 Teacher 权重始终不变。
+这里的 $\cdot$ 表示完整的下一 token 概率分布。两者处理同一个轨迹前缀 $T_{i,j,<k}$ ，区别是 Teacher 能看到 $Q_{i,j}+A_{i,j}$ ，Student 只能看到 $Q_{i,j}$ 。Teacher 使用固定的 $M^{\mathrm T}$ ，不参与反向传播；梯度只更新 server 上的 $M_\theta$ 。随着 Student 更新，轨迹前缀可能变化，因此 Teacher 的输出分布也可能随输入轨迹变化，但 Teacher 权重始终不变。
 
 以下内容是本文提出的 Fed MOPSD 流程，不是 FedOPD、MOPD 或 OPSD 原文已经给出的算法。这里首先限定场景：prompt 可以共享，只有特权信息 $A$ 不直接发送给 server。
 
-1. **server 一次性下发初始模型。** 训练开始前，server 把初始 Student 权重 $M_0$ 发送给各 client。client 将其冻结为整个训练期间固定的 Teacher $M^{\mathrm T}$，后续不再接收更新后的 Student 权重。
-2. **server 获得 prompt。** client 向 server 提供本轮使用的 prompt 集合 $Q_i$，或者 server 根据 client 领域提供一组公共 prompt。这里必须明确：这些 prompt 是允许 server 获得的。
-3. **server 生成轨迹。** server 使用当前 Student，根据 $Q_{i,j}$ 生成轨迹 $T_{i,j}$。
+1. **server 一次性下发初始模型。** 训练开始前，server 把初始 Student 权重 $M_0$ 发送给各 client。client 将其冻结为整个训练期间固定的 Teacher $M^{\mathrm T}$ ，后续不再接收更新后的 Student 权重。
+2. **server 获得 prompt。** client 向 server 提供本轮使用的 prompt 集合 $Q_i$ ，或者 server 根据 client 领域提供一组公共 prompt。这里必须明确：这些 prompt 是允许 server 获得的。
+3. **server 生成轨迹。** server 使用当前 Student，根据 $Q_{i,j}$ 生成轨迹 $T_{i,j}$ 。
 4. **server 发送轨迹。** server 把 $(Q_{i,j},T_{i,j})$ 发送给对应 client。
-5. **client 构造特权 Teacher。** client 找到与 $Q_{i,j}$ 对应的特权信息 $A_{i,j}$，让冻结模型读取 $Q_{i,j}+A_{i,j}$，并在轨迹 $T_{i,j}$ 的每个 token 位置给出 Teacher 分布。
+5. **client 构造特权 Teacher。** client 找到与 $Q_{i,j}$ 对应的特权信息 $A_{i,j}$ ，让冻结模型读取 $Q_{i,j}+A_{i,j}$ ，并在轨迹 $T_{i,j}$ 的每个 token 位置给出 Teacher 分布。
 6. **client 返回分布。** client 把 Teacher 分布（logits）或压缩后的 top-$k$ 结果发送给 server。
 7. **server 更新 Student。** server 使用来自不同 client 的 Teacher 分布训练同一个 Student。
 8. **继续训练或结束。** 如果训练继续，server 使用更新后的 Student 生成下一批轨迹，并重复步骤 2—7；各 client 始终使用最初冻结的 $M^{\mathrm T}$，server 不再下发新的模型权重。达到停止条件后，server Student 即为最终模型。
@@ -226,7 +223,7 @@ $$
 
 $\alpha_i$ 控制不同领域在训练中的权重。为了避免 Code 因回答更长而自然占据更大的损失比例，可以先在每条回答内部按 token 数归一化，再在领域内部按样本数归一化，最后使用 $\alpha_i$ 组合三个领域。
 
-只有当多个 client 对完全相同的 $Q$ 和 $T_{<k}$ 都给出 Teacher 分布时，才可以讨论分布合并。记 client $i$ 的固定 Teacher 在共同 prefix $h$ 上给出的分布为 $q_i(v\mid h)$，则：
+只有当多个 client 对完全相同的 $Q$ 和 $T_{<k}$ 都给出 Teacher 分布时，才可以讨论分布合并。记 client $i$ 的固定 Teacher 在共同 prefix $h$ 上给出的分布为 $q_i(v\mid h)$ ，则：
 
 $$
 \bar q(v\mid h)=\sum_i\beta_i(h)q_i(v\mid h),
@@ -274,7 +271,7 @@ $$
 - client 已经允许 server 使用这些 prompt；
 - 研究场景明确规定只把特权信息 $A$ 视为不能泄露的数据。
 
-在这个前提下，可以准确地表述为：client 不直接发送特权信息 $A$，server 只获得 prompt、Student 轨迹以及由 $A$ 影响的 Teacher 分布。不能进一步表述为“client 的完整训练数据 $(Q,A)$ 都不会离开 client”，因为 server 已经获得了 $Q$。
+在这个前提下，可以准确地表述为：client 不直接发送特权信息 $A$，server 只获得 prompt、Student 轨迹以及由 $A$ 影响的 Teacher 分布。不能进一步表述为“client 的完整训练数据 $(Q,A)$ 都不会离开 client”，因为 server 已经获得了 $Q$ 。
 
 如果 prompt 和特权信息都需要保密，那么 server 不能直接生成依赖 $Q$ 的轨迹。流程需要改为：
 
@@ -287,7 +284,7 @@ $$
 
 这样就回到了“client OPSD + 联邦参数聚合”的路线，client 需要承担 Student 和 Teacher 的前向计算、Student 反向传播以及优化器状态，显存开销也会明显增加。FedTOPS 原文针对“共享固定 Teacher 下的本地 OPD + FedAvg 增量”设计；若把它用于这种 OPSD 场景，需要重新定义候选评分和 Teacher 条件，不能直接视为原算法已经覆盖。
 
-还有一点需要注意：即使 client 没有直接发送 $A$，Teacher 分布仍然由 $A$ 决定，因此 logits 可能暴露一部分特权信息。Fed MOPSD 首先满足的是“特权信息原文不直接上传”，若要进一步给出严格的隐私保证，还需要研究分布压缩、噪声、差分隐私、安全聚合或保密计算等机制。
+还有一点需要注意：即使 client 没有直接发送 $A$ ，Teacher 分布仍然由 $A$ 决定，因此 logits 可能暴露一部分特权信息。Fed MOPSD 首先满足的是“特权信息原文不直接上传”，若要进一步给出严格的隐私保证，还需要研究分布压缩、噪声、差分隐私、安全聚合或保密计算等机制。
 
 ### 3.6 Fed MOPSD 与前面几种方法的区别 （GPT）
 
