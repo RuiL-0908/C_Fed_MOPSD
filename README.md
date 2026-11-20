@@ -180,142 +180,35 @@ $$
 *图 4：训练开始前，server 只下发一次初始模型；client 将其固定为 Teacher。训练期间只有 server Student 持续 rollout 和更新，client Teacher 不再同步新权重。图中流程成立的前提是 prompt 允许 server 获得。*
 
 
+
+
+
+
+--------------------------------------------------
+
+### Q1:当前架构的合理性？
+
+- 创新的前提
+
+**这个方案只是简单的 Fed + MOPD + OPSD 套在一起。还需要创新点和其他工作量**
+
+### Q2：显存问题
+
+**各个client的数据是私有的，它们之间是独立的，所以每个client要独自维护一个初始模型。**
+
+**初始模型选择Qwen3-4B**
+
 如果有 Math、IF、Code 三个 client，逻辑上需要维护：
 
 - server 上的 1 个可训练 Student；
 - 每个 client 上的 1 个冻结模型，用于结合特权信息产生 Teacher 分布。
 （4x8GB = 32GB）
 
-**这个方案只是把MOPD、OPSD、Fed的思想结合在一起。我认为创新点最可能出现在第7步中：如何利用各client教师给出的信息？**
-
-
+--------------------------------------------------
 
 --------------------------------------------------
 
-## 下面是大模型给的一些建议 （GPT）
 
-### server 怎样吸收三个 client 的知识？（GPT）
-
-对于 Math、IF、Code 三个 client，它们通常处理的是不同 prompt。不同问题上的 token 分布不能直接按词表位置求平均。例如，Math Teacher 对一道数学题给出的分布，与 Code Teacher 对一道编程题给出的分布没有直接平均的意义。
-
-更合适的做法是分别计算各领域损失，再组成一个联合目标：
-
-$$
-\mathcal L(\theta)=\sum_i\alpha_i\mathcal L_i(\theta),
-\qquad
-\alpha_i\geq0,
-\qquad
-\sum_i\alpha_i=1,
-$$
-
-其中：
-
-$$
-\mathcal L_i(\theta)
-=\frac{1}{|\mathcal B_i|}
-\sum_{j\in\mathcal B_i}
-\frac{1}{|T_{i,j}|}
-\sum_{k=1}^{|T_{i,j}|}
-D_{\mathrm{KL}}\!\left(
-q_{i,j,k}\,\|\,p_{\theta,i,j,k}
-\right).
-$$
-
-$\alpha_i$ 控制不同领域在训练中的权重。为了避免 Code 因回答更长而自然占据更大的损失比例，可以先在每条回答内部按 token 数归一化，再在领域内部按样本数归一化，最后使用 $\alpha_i$ 组合三个领域。
-
-只有当多个 client 对完全相同的 $Q$ 和 $T_{<k}$ 都给出 Teacher 分布时，才可以讨论分布合并。记 client $i$ 的固定 Teacher 在共同 prefix $h$ 上给出的分布为 $q_i(v\mid h)$ ，则：
-
-$$
-\bar q(v\mid h)=\sum_i\beta_i(h)q_i(v\mid h),
-\qquad
-\sum_i\beta_i(h)=1.
-$$
-
-对于当前 Math、IF、Code 各自拥有不同训练数据的设定，本文建议把各领域样本的蒸馏损失组成联合目标，而不是对不同输入上的三个分布直接求平均。这是 Fed MOPSD 的设计选择，不是 OPSD 或 MOPD 原文结论。
-
-另一种实现是让 client 依次工作，例如 Math $\rightarrow$ IF $\rightarrow$ Code，再回到 Math。这样可以减少并发活动模型的数量，但顺序训练可能产生顺序效应或领域遗忘。随机交错不同领域样本是一个可比较的候选实现，哪一种更好需要在相同样本量和更新步数下做消融，本文不预设结论。
-
-### 3.4 逐 token 分布、top-$k$ 与通信开销 （GPT）
-
-如果 client 返回完整词表分布，设一个训练批次共有 $B$ 条轨迹，平均轨迹长度为 $L$，词表大小为 $V$，那么该批次的上行通信量约为：
-
-$$
-O(BLV).
-$$
-
-这可能非常大。若每个 token 只返回 top-$k$ 的 token ID 和概率，通信量可以降为：
-
-$$
-O(BLk).
-$$
-
-但是，top-$k$ 不是完整分布，不能直接声称它与全词表 KL 完全相同。本文可以研究同时返回 top-$k$ token 概率和剩余总概率质量的 top-$k$ 加 tail 压缩，但这不是 OPSD 原文算法。FedTOPS 的 tail bucket 用于候选评分；MOPD 的 top-$k$ distillation 则在截断 reverse-KL 中加入修正项，二者也不能直接当成同一种损失。Fed MOPSD 需要分别比较：
-
-- 完整词表分布；
-- top-$k$ 加 tail；
-- 只使用 sampled token；
-- 不同 $k$ 值下的效果、通信量和训练时间。
-
-如果 Fed MOPSD 采用 OPSD 原文表现最好的 full-vocabulary forward KL 配置，还应单独验证原文的 per-token pointwise clipping。对第 $n$ 个生成位置、词表项 $v$ 的 divergence contribution $\ell_{n,v}^{(f)}$，原文使用 $\min(\ell_{n,v}^{(f)},\tau)$ 后再对位置和词表求和。它截断的是每个位置、每个词表项的散度贡献，不是整条回答的总损失，也不是最大生成长度。OPSD 的消融显示 clipping 能稳定其数学实验，但这不能代替在 Math、IF、Code 联合训练中的重新验证。
-
-### 3.5 prompt 是否也属于隐私？ （GPT）
-
-这是 Fed MOPSD 中必须明确的问题。
-
-在很多真实场景中，prompt 本身就可能包含用户身份、病情、内部代码、业务需求或未公开任务。因此，不能默认只有答案 $A$ 是隐私，而问题 $Q$ 一定可以上传。
-
-本文上述 server rollout 流程成立，需要满足以下前提之一：
-
-- prompt 来自公开数据集；
-- prompt 由 server 提供；
-- client 已经允许 server 使用这些 prompt；
-- 研究场景明确规定只把特权信息 $A$ 视为不能泄露的数据。
-
-在这个前提下，可以准确地表述为：client 不直接发送特权信息 $A$，server 只获得 prompt、Student 轨迹以及由 $A$ 影响的 Teacher 分布。不能进一步表述为“client 的完整训练数据 $(Q,A)$ 都不会离开 client”，因为 server 已经获得了 $Q$ 。
-
-如果 prompt 和特权信息都需要保密，那么 server 不能直接生成依赖 $Q$ 的轨迹。流程需要改为：
-
-1. server 向 client 发送当前模型权重；
-2. client 在自己的 prompt 上完成 Student rollout；
-3. client 在自己的 $(Q,A)$ 上构造 Teacher 分布；
-4. client 直接完成 OPSD 更新；
-5. client 上传参数增量或 LoRA 参数；
-6. server 使用 FedAvg 或其他经过重新定义的聚合方法处理 client 更新。
-
-这样就回到了“client OPSD + 联邦参数聚合”的路线，client 需要承担 Student 和 Teacher 的前向计算、Student 反向传播以及优化器状态，显存开销也会明显增加。FedTOPS 原文针对“共享固定 Teacher 下的本地 OPD + FedAvg 增量”设计；若把它用于这种 OPSD 场景，需要重新定义候选评分和 Teacher 条件，不能直接视为原算法已经覆盖。
-
-还有一点需要注意：即使 client 没有直接发送 $A$ ，Teacher 分布仍然由 $A$ 决定，因此 logits 可能暴露一部分特权信息。Fed MOPSD 首先满足的是“特权信息原文不直接上传”，若要进一步给出严格的隐私保证，还需要研究分布压缩、噪声、差分隐私、安全聚合或保密计算等机制。
-
-### 3.6 Fed MOPSD 与前面几种方法的区别 （GPT）
-
-| 方法 | client 持有什么 | client 上传什么 | Student 在哪里更新 | server 怎样获得多 client 能力 |
-|---|---|---|---|---|
-| FedAvg | client 训练数据 | 训练后的模型参数 | client 训练，server 聚合 | 对 client 参数按样本量加权平均 |
-| FedOPD + FedTOPS | client prompt、共享固定 Teacher | LoRA factors；附录 E.4 的分布式设想还可返回候选评分标量 | client 进行 OPD | server 沿 FedAvg 增量方向选择倍率 |
-| 本文假设的分布式 MOPD | 已经训练好的领域 Teacher | 逐 token Teacher 分布或压缩信号 | server | Student 学习多个领域 Teacher 的输出 |
-| Fed MOPSD | prompt 与特权信息，其中至少 $A$ 留在 client | 由特权信息产生的逐 token 分布 | server | 同一个 Student 联合学习各 client 的特权 Teacher 分布 |
-
-Fed MOPSD 最关键的区别是：client 不必预先拥有一个额外的强 Teacher，也不必各自训练并上传完整 Student。server 下发的同一份模型在 client 被冻结，并因为看到了特权信息而成为 Teacher；server 上的 Student 只看普通输入，并学习多个 client 返回的逐 token 分布。
-
-这一方案需要通过实验回答以下问题：
-
-1. 特权信息是否真的能使同源 Teacher 比当前 Student 给出更有效的分布？
-2. Math、IF、Code 三个领域联合训练时，怎样设置领域比例才能减少相互干扰？
-3. OPSD 的逐 token clipping 在多领域训练中是否仍然有效？
-4. 完整分布、top-$k$ 加 tail 和 sampled-token 的效果差距有多大？
-5. 当 server Student 持续更新、与固定 Teacher 的参数差距逐渐增大时，训练是否仍然稳定？
-6. 与“client 各自 OPSD 后使用 FedAvg”相比，server 统一蒸馏能否更好地保留各领域能力？
-7. 在相同训练 token 数和推理预算下，效果提升是否足以抵消额外的 logits 通信开销？
-
-从研究路线来看，可以先在 prompt 可共享、只有特权信息需要保留在 client 的设定下验证算法是否有效。第一阶段先比较以下基线：
-
-- 初始 Student；
-- 单领域 OPSD；
-- 三个 client 分别 OPSD 后进行 FedAvg；
-- 三个领域集中式 MOPD；
-- 本文提出的 Fed MOPSD。
-
-如果 Fed MOPSD 能够在相同训练预算下比 FedAvg 更稳定地保留 Math、IF、Code 三个领域能力，再进一步研究 top-$k$ 压缩、异步 client、client 采样以及更严格的隐私保护会更有意义。
 
 ## 参考文献
 
